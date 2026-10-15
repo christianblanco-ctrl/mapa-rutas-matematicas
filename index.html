@@ -113,8 +113,6 @@ ol.steps .a{font-size:12.5px;color:var(--muted)}
 ol.steps li.cur .t{text-decoration:underline;text-underline-offset:3px}
 @media (max-width:640px){
   .logo{height:64px}
-  .drawer{top:auto;left:0;right:0;width:auto;height:68vh;border-radius:14px 14px 0 0;transform:translateY(105%);padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-  .drawer.open{transform:none}
   .map{height:calc(100vh - 300px)}
   .col{width:178px}
   .inner{gap:48px}
@@ -126,7 +124,17 @@ h3.x{}
 .mem span{font-weight:600;color:var(--c);font-size:11px;margin-right:4px}
 .mem i{font-style:normal;color:var(--muted)}
 .mem.cur{background:var(--card-hover);outline:1.5px solid var(--fg)}
-@media (min-width:900px){body.dopen .app{margin-right:400px}}
+/* Panel de detalle: abajo en pantallas medianas/chicas, lateral solo si hay ancho de sobra; el mapa nunca queda tapado */
+.drawer{top:auto;left:0;right:0;bottom:0;width:auto;height:42vh;border-radius:14px 14px 0 0;transform:translateY(105%);
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+body.dopen{padding-bottom:calc(42vh + 12px)}
+body.dopen .map{height:max(260px,calc(100vh - 230px - 42vh))}
+@media (min-width:1000px){
+  .drawer{top:0;left:auto;width:340px;height:auto;border-radius:0;transform:translateX(105%);padding:18px 18px 28px}
+  body.dopen{padding-bottom:14px}
+  body.dopen .app{margin-right:340px}
+  body.dopen .map{height:calc(100vh - 210px)}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -588,15 +596,16 @@ function renderDrawer(){
 }
 
 /* ---------- acciones ---------- */
+function focusMap(){if(innerWidth<1000)setTimeout(()=>$('map').scrollIntoView({block:'start',behavior:'smooth'}),60)}
 function select(id){
-  st.sel=id;
+  st.sel=id;focusMap();
   if(st.hl&&!st.hl.set.has(id))st.hl=null;
   render();
 }
 function route(id){
   const s=SEQ[id];if(s.tema==='OTR')return;
   const set=new Set(TEMA_SET[s.tema]);chainOf(id).forEach(x=>set.add(x));
-  st.sel=id;st.hl={tema:s.tema,set};
+  st.sel=id;st.hl={tema:s.tema,set};focusMap();
   if(st.level!=='all'&&new Set([...set].map(x=>SEQ[x].g[0])).size>1)st.level='all';
   render();
   requestAnimationFrame(()=>{
